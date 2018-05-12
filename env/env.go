@@ -102,16 +102,13 @@ func EnvCheck() error {
 	}
 
 	if _, serr := os.Stat(runEnv.cacertPemPath); nil != serr {
-		log.Errorfln("cacertpem is not file path, path = %v", runEnv.cacertPemPath)
-		return serr
+		log.Panicf("cacertpem is not file path, path = %v", runEnv.cacertPemPath)
 	}
 	if _, serr := os.Stat(runEnv.certPemPath); nil != serr {
-		log.Errorfln("certPemPath is not file path, path = %v", runEnv.certPemPath)
-		return serr
+		log.Panicf("certPemPath is not file path, path = %v", runEnv.certPemPath)
 	}
 	if _, serr := os.Stat(runEnv.priKeyPemPath); nil != serr {
-		log.Errorfln("priKeyPemPath is not file path, path = %v", runEnv.priKeyPemPath)
-		return serr
+		log.Panicf("priKeyPemPath is not file path, path = %v", runEnv.priKeyPemPath)
 	}
 
 	var cacertPemB, caerr = readPemFile(runEnv.cacertPemPath)
@@ -122,6 +119,7 @@ func EnvCheck() error {
 	if nil != certerr {
 		return certerr
 	}
+
 	var priKeyPemB, pkerr = readPemFile(runEnv.priKeyPemPath)
 	if nil != pkerr {
 		return pkerr

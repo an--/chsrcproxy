@@ -55,16 +55,28 @@ func ConnWriteLogErr(conn net.Conn, bs []byte) (wn int, err error) {
 	return wn, err
 }
 
+// ConnCloseLog log close
+func ConnCloseLog(conn net.Conn) (err error) {
+	if nil != conn {
+		log.Infofln("connect colse, src.addr = %s , remote.addr = %s", conn.LocalAddr().String(), conn.RemoteAddr().String())
+		err = conn.Close()
+	}
+	return err
+}
+
 // ProtExchange 转发数据时协议切换处理
 func ProtExchange(srcConn net.Conn, outProto, outAddr string, outPort int) {
-	defer srcConn.Close()
+	defer ConnCloseLog(srcConn)
 
 	var rbuf [6]byte
 	if _, _, rerr := ConnReadLogErr(srcConn, rbuf[:]); nil != rerr {
 		return
 	}
-
 	log.Debugfln("srcConn first 6 bytes = %v", rbuf[:6])
+
+	var dstConn net.Conn
+	var dialErr error
+	defer ConnCloseLog(dstConn)
 
 	var oPortStr = fmt.Sprintf("%d", outPort)
 	if CHSRCType == string(rbuf[:5]) {
@@ -83,12 +95,12 @@ func ProtExchange(srcConn net.Conn, outProto, outAddr string, outPort int) {
 		if TCPType == outProto {
 			var dstPort = fmt.Sprintf("%d", srcChsrcC.DSTPort)
 			var addrStr = net.JoinHostPort(srcChsrcC.DSTAddr, dstPort)
-			var dstConn, dialErr = net.DialTimeout(srcChsrcC.DSTAType, addrStr, tcpCTimeOut)
+			dstConn, dialErr = net.DialTimeout(srcChsrcC.DSTAType, addrStr, tcpCTimeOut)
 			if nil != dialErr {
 				log.Errorf("dial conntion error = %v", dialErr)
 				return
 			}
-			defer dstConn.Close()
+			defer ConnCloseLog(dstConn)
 
 			var ch = TCPChsrcChannel{
 				TCPConn:   &dstConn,
@@ -100,12 +112,12 @@ func ProtExchange(srcConn net.Conn, outProto, outAddr string, outPort int) {
 			}
 			log.Errorfln("chsrc to tcp complete, chsrc.remote = %v, tcp.remote = %v", srcChsrcC.TCPConn.RemoteAddr, dstConn.RemoteAddr)
 		} else if CHSRCType == outProto {
-			var dstConn, dialErr = net.DialTimeout(TCPType, net.JoinHostPort(outAddr, oPortStr), tcpCTimeOut)
+			dstConn, dialErr = net.DialTimeout(TCPType, net.JoinHostPort(outAddr, oPortStr), tcpCTimeOut)
 			if nil != dialErr {
 				log.Errorf("dial conntion error = %v", dialErr)
 				return
 			}
-			defer dstConn.Close()
+			defer ConnCloseLog(dstConn)
 
 			var dstChsrcC = ChsrcConn{
 				TCPConn: dstConn,
@@ -152,19 +164,21 @@ func ProtExchange(srcConn net.Conn, outProto, outAddr string, outPort int) {
 
 		if TCPType == outProto {
 			var dstHostStr = dstAddr.HostStr()
-			var dstConn, derr = net.DialTimeout(dstAddr.AType, dstHostStr, tcpCTimeOut)
-			if nil != derr {
-				log.Errorfln("connect destination address error = %v", derr)
+			dstConn, dialErr = net.DialTimeout(dstAddr.AType, dstHostStr, tcpCTimeOut)
+			if nil != dialErr {
+				log.Errorfln("connect destination address error = %v", dialErr)
 				return
 			}
+			defer ConnCloseLog(dstConn)
+
 			TransTCPData(srcConn, dstConn)
 		} else if CHSRCType == outProto {
-			var dstConn, dialErr = net.DialTimeout(TCPType, net.JoinHostPort(outAddr, oPortStr), tcpCTimeOut)
+			dstConn, dialErr = net.DialTimeout(TCPType, net.JoinHostPort(outAddr, oPortStr), tcpCTimeOut)
 			if nil != dialErr {
 				log.Errorf("dial conntion error = %v", dialErr)
 				return
 			}
-			defer dstConn.Close()
+			defer ConnCloseLog(dstConn)
 			var dstChsrcC = ChsrcConn{
 				TCPConn:  dstConn,
 				Seq:      0,
