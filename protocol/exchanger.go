@@ -162,17 +162,7 @@ func ProtExchange(srcConn net.Conn, outProto, outAddr string, outPort int) {
 			return
 		}
 
-		if TCPType == outProto {
-			var dstHostStr = dstAddr.HostStr()
-			dstConn, dialErr = net.DialTimeout(dstAddr.AType, dstHostStr, tcpCTimeOut)
-			if nil != dialErr {
-				log.Errorfln("connect destination address error = %v", dialErr)
-				return
-			}
-			defer ConnCloseLog(dstConn)
-
-			TransTCPData(srcConn, dstConn)
-		} else if CHSRCType == outProto {
+		if CHSRCType == outProto {
 			dstConn, dialErr = net.DialTimeout(TCPType, net.JoinHostPort(outAddr, oPortStr), tcpCTimeOut)
 			if nil != dialErr {
 				log.Errorf("dial conntion error = %v", dialErr)
