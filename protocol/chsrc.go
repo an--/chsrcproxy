@@ -349,7 +349,7 @@ func (conn *ChsrcConn) WriteData(ctBs []byte) (wn int, err error) {
 		return wn, aesErr
 	}
 
-	log.Debugfln("ReadData length = %d, remote = %s", len(cipherBs), conn.TCPConn.RemoteAddr().String())
+	log.Debugfln("WriteData length = %d, remote = %s", len(cipherBs), conn.TCPConn.RemoteAddr().String())
 	return conn.WriteSectionBs(DATA, cipherBs)
 }
 
