@@ -314,7 +314,7 @@ func (conn *ChsrcConn) ReadData() ([]byte, error) {
 	if DATA != section.TitleNum {
 		return nil, errors.New("chsrc section is not DATA")
 	}
-	log.Debugfln("ReadData length = %d, content = %v", len(plainBs), string(plainBs))
+	log.Debugfln("ReadData length = %d, remote = %s", len(plainBs), conn.TCPConn.RemoteAddr().String())
 	return plainBs, nil
 }
 
@@ -349,7 +349,7 @@ func (conn *ChsrcConn) WriteData(ctBs []byte) (wn int, err error) {
 		return wn, aesErr
 	}
 
-	log.Debugfln("WriteData length = %d, content = %v", len(cipherBs), string(cipherBs))
+	log.Debugfln("ReadData length = %d, remote = %s", len(cipherBs), conn.TCPConn.RemoteAddr().String())
 	return conn.WriteSectionBs(DATA, cipherBs)
 }
 
