@@ -344,12 +344,11 @@ func (conn *ChsrcConn) WriteSection(section *Section) (wn int, err error) {
 
 // WriteData 写入数据内容
 func (conn *ChsrcConn) WriteData(ctBs []byte) (wn int, err error) {
+	log.Debugfln("WriteData length = %d, remote = %s", len(ctBs), conn.TCPConn.RemoteAddr().String())
 	var cipherBs, aesErr = AESCBCCodec(conn.Secret[:], ctBs, true)
 	if nil != aesErr {
 		return wn, aesErr
 	}
-
-	log.Debugfln("WriteData length = %d, remote = %s", len(cipherBs), conn.TCPConn.RemoteAddr().String())
 	return conn.WriteSectionBs(DATA, cipherBs)
 }
 
